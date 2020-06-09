@@ -37,7 +37,7 @@ public class FsmSetData {
                 .replace("{transaction_id}", transactionRequestBean.getTransactionId());
 
         if (requestParams.length > 0 || pathVariables.length > 0) {
-            String[] pathRequestVariables = fillParameterArray(requestParams, pathVariables);
+            Object[] pathRequestVariables = fillParameterArray(requestParams, pathVariables);
             revertEndpoint = MessageFormat.format(revertEndpoint, pathRequestVariables);
         }
 
@@ -64,8 +64,8 @@ public class FsmSetData {
 
     }
 
-    private String[] fillParameterArray(String[] requestParams, String[] pathVariables) {
-        String[] requestPathVariables = new String[pathVariables.length + requestParams.length];
+    private Object[] fillParameterArray(String[] requestParams, String[] pathVariables) {
+        Object[] requestPathVariables = new Object[pathVariables.length + requestParams.length];
         for (int i = 0, j = 0; i < requestPathVariables.length; i++) {
             if (i < pathVariables.length) {
                 requestPathVariables[i] = pathVariables[i];
