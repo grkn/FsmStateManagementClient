@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+}
+apply plugin: "maven"
+
+group 'fsm-client'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compileOnly group: 'org.springframework', name: 'spring-core', version: '5.2.5.RELEASE'
+    compileOnly group: 'org.springframework', name: 'spring-context', version: '5.2.5.RELEASE'
+    compileOnly group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '2.2.2.RELEASE'
+    compileOnly group: 'org.springframework', name: 'spring-web', version: '5.2.5.RELEASE'
+    compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.10.4'
+    compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.4'
+    compileOnly 'javax.servlet:servlet-api:2.5'
+
+
+}
