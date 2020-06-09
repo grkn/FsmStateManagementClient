@@ -100,7 +100,7 @@ These fields are necessary for server to notify microservices.
 
 # Next Features
 - RestTemplate implementation will be added.
-- Amqp implementation will be added.
+- Rabbitmq implementation will be added.
 - Conductor Netflix(Workflow management) will be added.
 
 ## SEE ALSO
