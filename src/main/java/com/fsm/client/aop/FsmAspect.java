@@ -83,7 +83,7 @@ public class FsmAspect {
             LOGGER.debug("Fsm creation begins with FsmStateName : " + fsmStatesName);
         }
 
-        fsmCreate.createFsm(fsmStatesName);
+        boolean isCreated = fsmCreate.createFsm(fsmStatesName);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Fsm created by given states. FsmStateName" + fsmStatesName);
@@ -102,7 +102,11 @@ public class FsmAspect {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Fsm finalize logic begins.");
             }
-            fsmFinalize.finalize();
+
+            if(isCreated) {
+                fsmFinalize.finalize();
+            }
+
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Fsm finalize logic ends.");
             }

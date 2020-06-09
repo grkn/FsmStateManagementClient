@@ -36,13 +36,13 @@ public class FsmCreate {
         this.transactionRequestBean = transactionRequestBean;
     }
 
-    public void createFsm(String fsmStatesName) {
+    public boolean createFsm(String fsmStatesName) {
 
         if (!StringUtils.isEmpty(transactionRequestBean.getTransactionId())) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Fsm has already create no need to create again");
             }
-            return;
+            return false;
         }
 
         LOGGER.debug("Fsm create method is called by given fmsStateName " + fsmStatesName);
@@ -65,5 +65,7 @@ public class FsmCreate {
             }
         }
         LOGGER.debug(String.format("Fsm create method is ended by given fmsStateName: %s , transaction_id : %s", fsmStatesName, transactionRequestBean.getTransactionId()));
+
+        return true;
     }
 }
