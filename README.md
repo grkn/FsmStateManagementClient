@@ -1,7 +1,7 @@
 # FsmStateManagementClient
 FsmStateManagement's java based client to manage transactions
 
-- To create finite state machine fsm client searchs for states.json under resource folder.
+- states.json under resource folder is necessary to create finite state machine .
 - If states.json can not be found, creation of fsm will fail.
 
 ```
@@ -55,6 +55,9 @@ FsmStateManagement's java based client to manage transactions
 ```
 
 ```
+@EnableFsmClient
+public class Config {}
+
 @FeignClient(name = "self", url = "${self.url}")
 public interface ExampleFeign {
 
@@ -80,7 +83,8 @@ public class MyRestController {
 }
 
 ```
-
+- @EnableFsmClient annotation is initialize all necessary classes and bind the current classes in spring context.
+- application.properties file must contain fsm.endpoint=http://{host}:{port}
 FsmStateManagement Client is currently implemented for feign clients. Later implementation will be suitable for restTemplate as well.
 There are two annotations that manage the rollback mechanism. @FsmTrace and @FsmTraceState have different behavior.
 
