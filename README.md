@@ -1,7 +1,7 @@
 # FsmStateManagementClient
 FsmStateManagement's java based client to manage transactions
 
-- To create finite state machine fsm client searchs for states.json under resource folder.
+- states.json under resource folder is necessary to create finite state machine .
 - If states.json can not be found, creation of fsm will fail.
 
 ```
