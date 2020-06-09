@@ -83,7 +83,8 @@ public class MyRestController {
 }
 
 ```
-@EnableFsmClient annotation is initialize all necessary classes and bind the current classes in spring context.
+- @EnableFsmClient annotation is initialize all necessary classes and bind the current classes in spring context.
+- application.properties file must contain fsm.endpoint=http://{host}:{port}
 FsmStateManagement Client is currently implemented for feign clients. Later implementation will be suitable for restTemplate as well.
 There are two annotations that manage the rollback mechanism. @FsmTrace and @FsmTraceState have different behavior.
 
