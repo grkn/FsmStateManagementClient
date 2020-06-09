@@ -64,11 +64,19 @@ public interface ExampleFeign {
     TestResource createTest(@RequestBody TestDto testDto);
 }
 
-@PostMapping
-@FsmTraceState(eventName = "event1")
-public ResponseEntity<TestResource> createTestModel(@RequestBody TestDto testDto) {
-    TestModel createdTestModel = testService.createTestModel(conversionService.convert(testDto, TestModel.class));
-    return ResponseEntity.ok(conversionService.convert(createdTestModel, TestResource.class));
+public class MyRestController {
+
+    @PostMapping
+    @FsmTraceState(eventName = "event1")
+    public ResponseEntity<TestResource> createTestModel(@RequestBody TestDto testDto) {
+        TestModel createdTestModel = testService.createTestModel(conversionService.convert(testDto, TestModel.class));
+        return ResponseEntity.ok(conversionService.convert(createdTestModel, TestResource.class));
+    }
+
+    @PatchMapping
+    public ResponseEntity<TestResource> selfInvokedCreateTest(@RequestBody TestDto testDto) {
+        return ResponseEntity.ok(selfFeign.createTest(testDto));
+    }
 }
 
 ```
@@ -94,6 +102,9 @@ These fields are necessary for server to notify microservices.
 - RestTemplate implementation will be added.
 - Amqp implementation will be added.
 - Conductor Netflix(Workflow management) will be added.
+
+## SEE ALSO
+https://github.com/grkn/FsmStateManagement
 
 
 
