@@ -11,10 +11,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 
 public class FsmContextHolder {
     private static JsonNode states = null;
     private static Map<String, JsonNode> statesAsMap = new HashMap<>();
+    private static Properties properties = new Properties();
 
     static {
         try {
@@ -34,6 +36,9 @@ public class FsmContextHolder {
                     statesAsMap.put(obj.getKey(), obj.getValue());
                 }
             }
+
+            InputStream propertyStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("application.properties");
+            properties.load(propertyStream);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -45,6 +50,10 @@ public class FsmContextHolder {
 
     public static Map<String, JsonNode> getStatesAsMap() {
         return statesAsMap;
+    }
+
+    public static String getPropertyByKey(String key) {
+        return String.valueOf(properties.get(key));
     }
 
 }

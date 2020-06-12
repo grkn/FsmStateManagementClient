@@ -2,6 +2,7 @@ package com.fsm.client.aop;
 
 import com.fsm.client.annotation.FsmTrace;
 import com.fsm.client.annotation.FsmTraceState;
+import com.fsm.client.context.FsmContextHolder;
 import com.fsm.client.op.*;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -13,12 +14,18 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Aspect
 public class FsmAspect {
 
     private static final String BEAN_DEF = "#";
     private static final Logger LOGGER = LoggerFactory.getLogger(FsmAspect.class);
+    private static final Pattern KEY_PATTERN = Pattern.compile("(\\w*)(\\[)('*)(\\w*)('*)(\\])");
+    private static final Pattern ENDPOINT_URL = Pattern.compile("(\\$\\{)([\\w.]*)(\\})");
 
     private final FsmCreate fsmCreate;
     private final FsmFinalize fsmFinalize;
@@ -94,7 +101,9 @@ public class FsmAspect {
         String[] requestParams = arrangeParamsByMethodArguments(fsmTraceAnnotation.requestParams(), signatureArgs);
         String[] pathVariables = arrangeParamsByMethodArguments(fsmTraceAnnotation.pathVariable(), signatureArgs);
 
-        fsmSetData.setData(fsmTraceAnnotation.data(), fsmTraceAnnotation.endpoint(), fsmTraceAnnotation.httpMethod(),
+        String endpoint = findEndpoint(fsmTraceAnnotation.endpoint());
+
+        fsmSetData.setData(fsmTraceAnnotation.data(), endpoint, fsmTraceAnnotation.httpMethod(),
                 requestParams, pathVariables);
 
         try {
@@ -103,7 +112,7 @@ public class FsmAspect {
                 LOGGER.debug("Fsm finalize logic begins.");
             }
 
-            if(isCreated) {
+            if (isCreated) {
                 fsmFinalize.finalize();
             }
 
@@ -114,6 +123,15 @@ public class FsmAspect {
         } catch (Throwable e) {
             throw e;
         }
+    }
+
+    private String findEndpoint(String endpoint) {
+        Matcher matcher = ENDPOINT_URL.matcher(endpoint);
+        if(matcher.find()){
+            String key = matcher.group(2);
+            return FsmContextHolder.getPropertyByKey(key);
+        }
+        return endpoint;
     }
 
     private String[] arrangeParamsByMethodArguments(String[] variables, Object[] signatureArgs) {
@@ -132,10 +150,24 @@ public class FsmAspect {
                     Object selectedArgument = signatureArgs[0];
                     for (int i = 1; i < concatString.length; i++) {
                         try {
-                            Field field = selectedArgument.getClass().getDeclaredField(concatString[i]);
-                            field.setAccessible(true);
-                            selectedArgument = field.get(selectedArgument);
-                            field.setAccessible(false);
+                            if (isIterable(concatString[i])) {
+                                String str = concatString[i].substring(0, concatString[i].indexOf("["));
+                                selectedArgument = handleObject(str, selectedArgument);
+                                concatString[i] = concatString[i].substring(concatString[i].indexOf("["), concatString[i].length());
+                            }
+                            boolean isArray = selectedArgument.getClass().isArray();
+                            boolean isCollection = Collection.class.isAssignableFrom(selectedArgument.getClass());
+                            boolean isMap = Map.class.isAssignableFrom(selectedArgument.getClass());
+
+                            if (isArray) {
+                                selectedArgument = handleArray(concatString[i], selectedArgument);
+                            } else if (isCollection) {
+                                selectedArgument = handleCollection(concatString[i], selectedArgument);
+                            } else if (isMap) {
+                                selectedArgument = handleMap(concatString[i], selectedArgument);
+                            } else {
+                                selectedArgument = handleObject(concatString[i], selectedArgument);
+                            }
                         } catch (NoSuchFieldException e) {
                             throw new IllegalArgumentException(String.format("Argument %s doesn't match with method parameters %s",
                                     concatString[i], selectedArgument.getClass().getSimpleName()));
@@ -143,6 +175,7 @@ public class FsmAspect {
                             throw new IllegalArgumentException(String.format("The field %s can not be accessed", concatString[i]));
                         }
                     }
+
                     result[resultCounter] = String.valueOf(selectedArgument);
                 }
             } else if (variable.contains(BEAN_DEF) && variable.length() == 2) {
@@ -156,5 +189,47 @@ public class FsmAspect {
         }
 
         return result;
+    }
+
+    private boolean isIterable(String string) {
+        return string.contains("[") && string.contains("]");
+    }
+
+    private Object handleObject(String name, Object selectedArgument) throws NoSuchFieldException, IllegalAccessException {
+        Field field = selectedArgument.getClass().getDeclaredField(name);
+        field.setAccessible(true);
+        selectedArgument = field.get(selectedArgument);
+        field.setAccessible(false);
+        return selectedArgument;
+    }
+
+    private Object handleMap(String input, Object selectedArgument) {
+        Matcher matcher = KEY_PATTERN.matcher(input);
+        if (matcher.find()) {
+            String key = matcher.group(4);
+            Map map = (Map) selectedArgument;
+            selectedArgument = map.get(key);
+        }
+        return selectedArgument;
+    }
+
+    private Object handleCollection(String input, Object selectedArgument) {
+        Matcher matcher = KEY_PATTERN.matcher(input);
+        if (matcher.find()) {
+            int index = Integer.parseInt(matcher.group(4));
+            Collection collection = (Collection) selectedArgument;
+            selectedArgument = collection.toArray()[index];
+        }
+        return selectedArgument;
+    }
+
+    private Object handleArray(String input, Object selectedArgument) {
+        Matcher matcher = KEY_PATTERN.matcher(input);
+        if (matcher.find()) {
+            int index = Integer.parseInt(matcher.group(4));
+            Object[] arr = (Object[]) selectedArgument;
+            selectedArgument = arr[index];
+        }
+        return selectedArgument;
     }
 }

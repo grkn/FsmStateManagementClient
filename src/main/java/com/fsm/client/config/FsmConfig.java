@@ -43,8 +43,8 @@ public class FsmConfig {
     }
 
     @Bean
-    public FeignInterceptor feignInterceptor(TransactionRequestBean transactionRequestBean, ObjectMapper objectMapper) {
-        return new FeignInterceptor(transactionRequestBean, objectMapper);
+    public FeignInterceptor feignInterceptor(TransactionRequestBean transactionRequestBean) {
+        return new FeignInterceptor(transactionRequestBean);
     }
 
     @Bean
