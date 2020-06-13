@@ -70,7 +70,7 @@ public interface ExampleFeign {
 public class MyRestController {
 
     @PostMapping
-    @FsmTraceState(eventName = "event1")
+    @FsmEvent(eventName = "event1")
     public ResponseEntity<TestResource> createTestModel(@RequestBody TestDto testDto) {
         TestModel createdTestModel = testService.createTestModel(conversionService.convert(testDto, TestModel.class));
         return ResponseEntity.ok(conversionService.convert(createdTestModel, TestResource.class));
@@ -86,17 +86,17 @@ public class MyRestController {
 - @EnableFsmClient annotation is initialize all necessary classes and bind the current classes in spring context.
 - application.properties file must contain fsm.endpoint=http://{host}:{port}
 FsmStateManagement Client is currently implemented for feign clients. Later implementation will be suitable for restTemplate as well.
-There are two annotations that manage the rollback mechanism. @FsmTrace and @FsmTraceState have different behavior.
+There are two annotations that manage the rollback mechanism. @FsmTrace and @FsmEvent have different behavior.
 
 # @FsmTrace
  -  Creates Fsm and waits for response until all transaction is complete. If transaction fails then rollback mechanism is trigger by FsmStateManagement server. As you can see from above example, there are endpoint, method, requestParams, pathVariables and data fields.
 These fields are necessary for server to notify microservices.
 
-# @FsmTraceState
+# @FsmEvent
 - Fsm moves the next state by given event automatically. Also if any exception occurs in next state, fsm fail endpoint is triggered automatically as well.
 
 
-@FsmTrace annotation is used on feign client methods, @FsmTraceState annotation is used in Controller methods.
+@FsmTrace annotation is used on feign client methods, @FsmEvent annotation is used in Controller methods.
 
 
 **There is fsm_transaction_id in the request header for each iteration of microservices. This transaction_id is responsible for managing transactions until all transaction is complete.
